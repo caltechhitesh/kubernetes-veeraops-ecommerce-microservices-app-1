@@ -1,30 +1,17 @@
-name: "Provision EKS Infrastructure"
+name: infra Terraform
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'EKS-Terraform/**'
-      - '.github/workflows/infra-eks.yml'
   workflow_dispatch:
-    inputs:
-      action:
-        description: 'Terraform Action to perform'
-        required: true
-        default: 'apply'
-        type: choice
-        options:
-          - apply
-          - destroy
 
 env:
-  AWS_REGION: "us-east-1"
-  TERRAFORM_VERSION: "1.6.0"
+  AWS_REGION: us-east-1
+  TF_VERSION: "1.12.2"
+  TF_WORKING_DIR: EKS-Terraform
+  BUCKET_NAME: hitesh-eks-cloud-2026   # <-- Line 10: Apna banaya hua S3 bucket name yahan daalein
 
 jobs:
   terraform:
-    name: "EKS Provisioning"
+    name: Terraform Apply
     runs-on: ubuntu-latest
 
     steps:
@@ -41,32 +28,24 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform-version: ${{ env.TERRAFORM_VERSION }}
+          terraform-version: ${{ env.TF_VERSION }}
 
       - name: Terraform Init
         run: |
-          cd EKS-Terraform
-          terraform init
+          cd ${{ env.TF_WORKING_DIR }}
+          terraform init -backend-config="bucket=${{ env.BUCKET_NAME }}"
 
-      - name: Terraform Format & Validate
+      - name: Terraform Validate
         run: |
-          cd EKS-Terraform
-          terraform fmt -check || true
+          cd ${{ env.TF_WORKING_DIR }}
           terraform validate
 
       - name: Terraform Plan
         run: |
-          cd EKS-Terraform
-          terraform plan -out=tfplan
+          cd ${{ env.TF_WORKING_DIR }}
+          terraform plan
 
-      - name: Terraform Action (Apply or Destroy)
-        if: github.ref == 'refs/heads/main'
+      - name: Terraform Apply
         run: |
-          cd EKS-Terraform
-          if [ "${{ github.event.inputs.action }}" == "destroy" ]; then
-            echo "Executing Terraform Destroy..."
-            terraform destroy -auto-approve
-          else
-            echo "Executing Terraform Apply..."
-            terraform apply -auto-approve tfplan
-          fi
+          cd ${{ env.TF_WORKING_DIR }}
+          terraform apply -auto-approve
