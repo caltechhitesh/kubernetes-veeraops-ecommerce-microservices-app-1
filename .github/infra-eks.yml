@@ -1,0 +1,72 @@
+name: "Provision EKS Infrastructure"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'EKS-Terraform/**'
+      - '.github/workflows/infra-eks.yml'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform Action to perform'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - destroy
+
+env:
+  AWS_REGION: "us-east-1"
+  TERRAFORM_VERSION: "1.6.0"
+
+jobs:
+  terraform:
+    name: "EKS Provisioning"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform-version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform Init
+        run: |
+          cd EKS-Terraform
+          terraform init
+
+      - name: Terraform Format & Validate
+        run: |
+          cd EKS-Terraform
+          terraform fmt -check || true
+          terraform validate
+
+      - name: Terraform Plan
+        run: |
+          cd EKS-Terraform
+          terraform plan -out=tfplan
+
+      - name: Terraform Action (Apply or Destroy)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          cd EKS-Terraform
+          if [ "${{ github.event.inputs.action }}" == "destroy" ]; then
+            echo "Executing Terraform Destroy..."
+            terraform destroy -auto-approve
+          else
+            echo "Executing Terraform Apply..."
+            terraform apply -auto-approve tfplan
+          fi
