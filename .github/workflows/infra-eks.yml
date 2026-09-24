@@ -7,7 +7,7 @@ env:
   AWS_REGION: us-east-1
   TF_VERSION: "1.12.2"
   TF_WORKING_DIR: EKS-Terraform
-  BUCKET_NAME: hitesh-eks-cloud-2026   # <-- Line 10: Apna banaya hua S3 bucket name yahan daalein
+  BUCKET_NAME: hitesh-eks-cloud-2026  
 
 jobs:
   terraform:
