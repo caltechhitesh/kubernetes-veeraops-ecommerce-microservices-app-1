@@ -7,7 +7,7 @@ env:
   AWS_REGION: us-east-1
   TF_VERSION: "1.12.2"
   TF_WORKING_DIR: EKS-Terraform
-  BUCKET_NAME: hitesh-demo-1-2026  
+  BUCKET_NAME: hitesh-2026-demo  
 
 jobs:
   terraform:
