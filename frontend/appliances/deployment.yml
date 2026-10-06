@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: appliances
-        image: 822849401718.dkr.ecr.us-east-1.amazonaws.com/shopping-site-appliances:85dae32b1d3ab94dd2cc5e9861ab2540ec2c8869
+        image: 822849401718.dkr.ecr.us-east-1.amazonaws.com/shopping-site-appliances:ce0b436c8b8151aef64f6ef5133f9f32f109e71a
         ports:
         - containerPort: 80
 ---
